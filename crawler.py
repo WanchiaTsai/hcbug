@@ -6,13 +6,12 @@ import csv
 import os
 import sys
 from datetime import datetime
-from itertools import chain
-import math
-from time import strftime
 
 
 def get_data_frame(file_loc):
-    df = pandas.read_excel(file_loc)
+    df = pandas.DataFrame()
+    data = pandas.read_excel(file_loc)
+    df = df.append(data)
     return df
 
 
@@ -173,11 +172,13 @@ def get_csv_file_name(file_loc):
 
 
 def main():
-    # print('Number of arguments:', len(sys.argv), 'arguments.')
-    # print('Argument List:', str(sys.argv))
+    print('Number of arguments:', len(sys.argv), 'arguments.')
+    print('Argument List:', str(sys.argv))
     # my code here
+    file_loc = sys.argv[1]
+    # file_loc='0-工業區名單/0-南投/10.南崗工業區廠商名錄.xlsx'
+    print(file_loc)
 
-    file_loc='0-工業區名單/0-南投/10.南崗工業區廠商名錄.xlsx'
     df = get_data_frame(file_loc)
 
     headers = get_file_header(df)
@@ -251,7 +252,6 @@ def main():
         # logs.append(log)
         write_data(csv_file_name, [log])
         # print(log)
-
 
 
 if __name__ == "__main__":
