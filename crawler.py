@@ -36,6 +36,8 @@ def get_company_key_word(company_name):
     index=company_name.find("公司")
     if index != -1:
         keyword = company_name[:index+2]
+        keyword = str(keyword).replace('(股)', "股份有限")
+
     return keyword
 
 
@@ -78,9 +80,7 @@ def analyze_company_table(driver):
     fields = []
     column = ''
     typicalColumns = ['統一編號', '公司狀況', '公司名稱', '資本總額(元)', '代表人姓名', '公司所在地', '登記機關', '核准設立日期', '最後核准變更日期', '所營事業資料']
-    critical_columns = ['統一編號', '公司名稱', '代表人姓名', '公司所在地']
 
-    critical_info = {}
     info = {}
     for row in driver.find_elements_by_css_selector('#tabCmpyContent > div > table > tbody > tr'):
         cells = row.find_elements_by_tag_name("td")
@@ -101,8 +101,6 @@ def analyze_company_table(driver):
                     field = rawText
                     fields.append(field)
                 info[column]=field
-                if column in critical_columns:
-                    critical_info[column]=field
     return info
 
 
@@ -186,6 +184,7 @@ def main():
             '廠商名稱',
             '搜尋關鍵字',
             '結果數量',
+            '公司狀況',
             '公司名稱',
             '統一編號',
             '代表人姓名',
@@ -206,7 +205,7 @@ def main():
         count += 1
         print(company_name)
         print("finish_count:", finish_count)
-        print("idx",idx)
+        print("idx",idx,"/",len(company_list))
         print("now_count",count)
 
         if(count <= finish_count):
@@ -228,18 +227,12 @@ def main():
         driver = get_company_page(search_results, driver)
 
         info = analyze_company_table(driver)
-        critical_columns = ['公司名稱', '統一編號', '代表人姓名', '公司所在地']
+        critical_columns = ['公司狀況', '公司名稱', '統一編號', '代表人姓名', '公司所在地']
 
-        # print(info)
+        print(info)
         driver.close()
         for column in critical_columns:
-        #     try:
-        #         info[column]
-        #     except NameError:
-        #         print("well, it WASN'T defined after all!")
-        #     else:
-        #         log.append(info[column])
-            log.append(info[column])
+            log.append(info.get(column, ''))
         log.append(info)
         # logs.append(log)
         write_data(csv_file_name, [log])
