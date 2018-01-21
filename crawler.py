@@ -32,6 +32,9 @@ def get_company_list(df, headers):
 
 
 def get_company_key_word(company_name):
+    if(company_name.find('\r') != -1 or company_name.find('\n') != -1):
+        return False
+        # exit(0)
     keyword = company_name
 
     index=company_name.find("公司")
@@ -43,6 +46,7 @@ def get_company_key_word(company_name):
         keyword = company_name[:index + 3]
         keyword = str(keyword).replace('(股)', "股份有限")
 
+    print(keyword)
     return keyword
 
 
@@ -58,7 +62,8 @@ def do_search(keyword):
     # elem.send_keys("台灣端板鋼鐵企業股份有限公司高雄廠")
     # elem.send_keys("nonono")
 
-    elem.send_keys(Keys.RETURN)
+    # elem.send_keys(Keys.RETURN)
+    elem.send_keys(Keys.ENTER)
     return driver
 
 
@@ -219,7 +224,10 @@ def main():
         log.append(modified_name)
         # print(modified_name)
         keyword = get_company_key_word(modified_name)
-        log.append(keyword)
+        log.append(str(keyword))
+        if keyword == False:
+            write_data(csv_file_name, [log])
+            continue
 
         driver = do_search(keyword)
         search_results = get_search_results(driver)
