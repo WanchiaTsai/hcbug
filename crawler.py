@@ -33,9 +33,14 @@ def get_company_list(df, headers):
 
 def get_company_key_word(company_name):
     keyword = company_name
+
     index=company_name.find("公司")
     if index != -1:
         keyword = company_name[:index+2]
+
+    index = company_name.find("(股)")
+    if index != -1:
+        keyword = company_name[:index + 3]
         keyword = str(keyword).replace('(股)', "股份有限")
 
     return keyword
@@ -69,7 +74,9 @@ def check_search_results(search_results):
 
 
 def get_company_page(search_results, driver):
-    first_result_name = search_results[0].text
+    # first_result_name = search_results[0].text
+    first_result_name=driver.find_element_by_css_selector('#vParagraph > div > div.panel-heading.companyName > a:nth-child(1)').text
+    # print(first_result_name)
     link = driver.find_element_by_link_text(first_result_name)
     link.click()
     return driver
@@ -80,7 +87,6 @@ def analyze_company_table(driver):
     fields = []
     column = ''
     typicalColumns = ['統一編號', '公司狀況', '公司名稱', '資本總額(元)', '代表人姓名', '公司所在地', '登記機關', '核准設立日期', '最後核准變更日期', '所營事業資料']
-
     info = {}
     for row in driver.find_elements_by_css_selector('#tabCmpyContent > div > table > tbody > tr'):
         cells = row.find_elements_by_tag_name("td")
