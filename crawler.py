@@ -1,3 +1,5 @@
+#!/usr/bin/python
+#coding:utf-8
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 import re
@@ -31,20 +33,20 @@ def get_company_list(df, headers):
 
 
 def get_company_key_word(company_name):
-    if(company_name.find('\r') != -1 or company_name.find('\n') != -1):
-        return False
-        # exit(0)
     keyword = company_name
 
-    index=company_name.find("公司")
+    index = company_name.find("公司")
     if index != -1:
         keyword = company_name[:index+2]
-
     index = company_name.find("(股)")
     if index != -1:
         keyword = company_name[:index + 3]
         keyword = str(keyword).replace('(股)', "股份有限")
-
+        keyword = str(keyword).replace('（股）', "股份有限")
+    index = company_name.find("（股）")
+    if index != -1:
+        keyword = company_name[:index + 3]
+        keyword = str(keyword).replace('（股）', "股份有限")
     print(keyword)
     return keyword
 
@@ -123,11 +125,14 @@ def write_data(file_name, data):
 
 def modified_company_name(company_name):
     company_name = str(company_name)
+    company_name = company_name.replace('\r', "")
+    company_name = company_name.replace('\n', "")
+    company_name = company_name.replace('"', "")
     if company_name == "nan":
         return False
     if len(company_name) < 3:
         return False
-    return str(company_name).replace('"', "")
+    return company_name
 
 
 def open_new_csv(file_name):
@@ -177,6 +182,7 @@ def main():
     # my code here
     file_loc = sys.argv[1]
     # file_loc='0-工業區名單/0-南投/10.南崗工業區廠商名錄.xlsx'
+    # file_loc = '0-工業區名單/0-台南/08安平工業區廠商名錄.xlsx'
     print(file_loc)
 
     df = get_data_frame(file_loc)
@@ -209,13 +215,16 @@ def main():
     for idx, company_name in enumerate(iter(company_list)):
         # if(idx >= 5):
         #     break
+        if(len(logs) >= 10):
+            write_data(csv_file_name, logs)
+            logs =[]
         log = []
         modified_name = modified_company_name(company_name)
         if modified_name == False:
             continue
 
         count += 1
-        print(company_name)
+        print(file_loc,company_name)
         print("finish_count:", finish_count)
         print("idx",idx,"/",len(company_list))
         print("now_count",count)
@@ -227,16 +236,15 @@ def main():
         keyword = get_company_key_word(modified_name)
         log.append(str(keyword))
         if keyword == False:
-            write_data(csv_file_name, [log])
+            logs.append(log)
             continue
 
         driver = do_search(keyword)
         search_results = get_search_results(driver)
-        # print(search_results)
         count_result=len(search_results)
         log.append(count_result)
         if len(search_results) == 0:
-            write_data(csv_file_name, [log])
+            logs.append(log)
             driver.close()
             continue
         driver = get_company_page(search_results, driver)
@@ -244,14 +252,14 @@ def main():
         info = analyze_company_table(driver)
         critical_columns = ['公司狀況', '公司名稱', '統一編號', '代表人姓名', '公司所在地']
 
-        print(info)
+        # print(info)
         driver.close()
         for column in critical_columns:
             log.append(info.get(column, ''))
         log.append(info)
-        # logs.append(log)
-        write_data(csv_file_name, [log])
+        logs.append(log)
         # print(log)
+    write_data(csv_file_name, logs)
 
 
 if __name__ == "__main__":
