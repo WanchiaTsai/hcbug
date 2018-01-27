@@ -47,7 +47,6 @@ def get_company_key_word(company_name):
     if index != -1:
         keyword = company_name[:index + 3]
         keyword = str(keyword).replace('（股）', "股份有限")
-    print(keyword)
     return keyword
 
 
@@ -177,6 +176,12 @@ def get_csv_file_name(file_loc):
 
 
 def main():
+    # print(sys.version)  # parentheses necessary in python 3.
+    # print(sys.version_info)
+    # print(sys.version)
+    # print(sys.path)
+    # exit(0)
+
     print('Number of arguments:', len(sys.argv), 'arguments.')
     print('Argument List:', str(sys.argv))
     # my code here
@@ -212,11 +217,15 @@ def main():
     #     exit(0)
     logs = []
     count = 0
+    no_result_combo=0
     for idx, company_name in enumerate(iter(company_list)):
-        # if(idx >= 5):
+        # if(idx >= 3):
         #     break
+        if no_result_combo >= 5:
+            exit("Combo 5 of no result")
         if(len(logs) >= 10):
             write_data(csv_file_name, logs)
+            print("WRITE~")
             logs =[]
         log = []
         modified_name = modified_company_name(company_name)
@@ -224,10 +233,8 @@ def main():
             continue
 
         count += 1
-        print(file_loc,company_name)
-        print("finish_count:", finish_count)
-        print("idx",idx,"/",len(company_list))
-        print("now_count",count)
+        print(file_loc,":",company_name)
+        print("count:~", finish_count, "...", count, "/", len(company_list))
 
         if(count <= finish_count):
             continue
@@ -244,9 +251,13 @@ def main():
         count_result=len(search_results)
         log.append(count_result)
         if len(search_results) == 0:
+            print("NO RESULT")
             logs.append(log)
+            no_result_combo += 1
             driver.close()
             continue
+        else:
+            no_result_combo = 0
         driver = get_company_page(search_results, driver)
 
         info = analyze_company_table(driver)
